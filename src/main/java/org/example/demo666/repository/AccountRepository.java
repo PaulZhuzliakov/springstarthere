@@ -1,33 +1,21 @@
 package org.example.demo666.repository;
 
-import org.example.demo666.mapper.AccountRowMapper;
 import org.example.demo666.model.Account;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jdbc.repository.query.Modifying;
+import org.springframework.data.jdbc.repository.query.Query;
+import org.springframework.data.repository.CrudRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-@Repository
-public class AccountRepository {
-    private final JdbcTemplate jdbcTemplate;
+public interface AccountRepository
+        extends CrudRepository<Account, Long> {
 
-    public AccountRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    @Query("SELECT * FROM account WHERE name = :name")
+    List<Account> findAccountsByName(String name);
 
-    public Account getAccountById(long id) {
-        String sql = "select * from account where id = ?";
-        return jdbcTemplate.queryForObject(sql, new AccountRowMapper(), id);
-    }
-
-    public void changeAmount(long id, BigDecimal amount) {
-        String sql = "update account set amount = ? where id = ?";
-        jdbcTemplate.update(sql, amount, id);
-    }
-
-    public List<Account> getAllAccounts() {
-        String sql = "select * from account";
-        return jdbcTemplate.query(sql, new AccountRowMapper());
-    }
+    @Modifying
+    @Query("UPDATE account SET amount = :amount WHERE id = :id")
+    void changeAmount(long id, BigDecimal amount);
 }
+

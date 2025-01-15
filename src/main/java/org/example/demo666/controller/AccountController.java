@@ -9,6 +9,7 @@ import java.util.List;
 
 @RestController
 public class AccountController {
+
     private final TransferService transferService;
 
     public AccountController(TransferService transferService) {
@@ -17,16 +18,22 @@ public class AccountController {
 
     @PostMapping("/transfer")
     public void transferMoney(
-            @RequestBody TransferRequest transferRequest) {
+            @RequestBody TransferRequest request
+    ) {
         transferService.transferMoney(
-                transferRequest.getSenderAccountId(),
-                transferRequest.getReceiverAccountId(),
-                transferRequest.getAmount()
-        );
+                request.getSenderAccountId(),
+                request.getReceiverAccountId(),
+                request.getAmount());
     }
 
     @GetMapping("/accounts")
-    public List<Account> getAllAccounts() {
-        return transferService.getAccounts();
+    public Iterable<Account> getAllAccounts(
+            @RequestParam(required = false) String name
+    ) {
+        if (name == null) {
+            return transferService.getAllAccounts();
+        } else {
+            return transferService.findAccountsByName(name);
+        }
     }
 }

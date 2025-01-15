@@ -1,10 +1,11 @@
 package org.example.demo666.service;
 
+import org.example.demo666.exception.AccountNotFoundException;
 import org.example.demo666.model.Account;
 import org.example.demo666.repository.AccountRepository;
+import org.example.demo666.repository.AccountRepository0;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -17,24 +18,40 @@ public class TransferService {
         this.accountRepository = accountRepository;
     }
 
+    public Iterable<Account> getAllAccounts() {
+        return accountRepository.findAll();
+    }
 
-    public void transferMoney(long idSender,
-                              long idReceiver,
-                              BigDecimal amount) {
-        Account sender = accountRepository.getAccountById(idSender);
-        Account receiver = accountRepository.getAccountById(idReceiver);
-
-        BigDecimal senderNewAmount = sender.getAmount().subtract(amount);
-        BigDecimal receiverNewAmount = receiver.getAmount().add(amount);
-
-        accountRepository.changeAmount(idSender, senderNewAmount);
-        accountRepository.changeAmount(idReceiver, receiverNewAmount);
-
-        throw new RuntimeException("Oh no! Something went wrong!");
+    public List<Account> findAccountsByName(String name) {
+        return accountRepository.findAccountsByName(name);
     }
 
 
-    public List<Account> getAccounts() {
-        return accountRepository.getAllAccounts();
+    @Transactional
+    public void transferMoney(
+            long idSender,
+            long idReceiver,
+            BigDecimal amount) {
+
+        Account sender =
+                accountRepository.findById(idSender)
+                        .orElseThrow(() -> new AccountNotFoundException());
+
+        Account receiver =
+                accountRepository.findById(idReceiver)
+                        .orElseThrow(() -> new AccountNotFoundException());
+
+        BigDecimal senderNewAmount =
+                sender.getAmount().subtract(amount);
+
+        BigDecimal receiverNewAmount =
+                receiver.getAmount().add(amount);
+
+        accountRepository
+                .changeAmount(idSender, senderNewAmount);
+
+        accountRepository
+                .changeAmount(idReceiver, receiverNewAmount);
     }
+
 }
